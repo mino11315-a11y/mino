@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <!-- 한글 표시와 모바일 화면 크기 대응에 필요한 기본 문서 설정입니다. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>구독 트래커</title>
+    <!-- 화면의 구조와 스타일을 각각 별도 파일에서 가져옵니다. -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <!-- 페이지 제목과 데이터 저장 위치를 안내하는 상단 영역입니다. -->
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">MY SUBSCRIPTIONS</p>
+                <h1>구독 트래커</h1>
+                <p class="page-description">매달 나가는 구독료를 한눈에 관리해요.</p>
+            </div>
+            <span class="privacy-label">내 브라우저에만 저장돼요</span>
+        </header>
+
+        <main>
+            <!-- JavaScript가 구독 데이터로 채우는 월간/연간 합계와 결제 예정 요약입니다. -->
+            <section class="summary-grid" aria-label="구독 요약">
+                <article class="summary-card summary-card-primary">
+                    <p class="summary-label">월 예상 지출</p>
+                    <p class="summary-value" id="summary-monthly">0원</p>
+                    <p class="summary-note">연간 구독료는 월 단위로 환산해요</p>
+                </article>
+                <article class="summary-card">
+                    <p class="summary-label">연간 예상 지출</p>
+                    <p class="summary-value" id="summary-yearly">0원</p>
+                    <p class="summary-note">월 지출 합계 × 12개월</p>
+                </article>
+                <article class="summary-card">
+                    <p class="summary-label">이번 주 결제 예정</p>
+                    <p class="summary-value" id="summary-weekly">0건</p>
+                    <p class="summary-note" id="summary-weekly-note">앞으로 7일 이내 결제</p>
+                </article>
+            </section>
+
+            <!-- 왼쪽은 구독 입력 폼, 오른쪽은 카테고리별 지출 비중입니다. -->
+            <section class="dashboard-grid" aria-label="구독 관리">
+                <section class="panel form-panel" aria-labelledby="form-title">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">SUBSCRIPTION</p>
+                            <h2 id="form-title">새 구독 추가</h2>
+                        </div>
+                    </div>
+                    <!-- 입력한 name은 main.js가 FormData로 읽어 구독 객체로 만듭니다. -->
+                    <form id="subscription-form">
+                        <!-- 수정할 때 기존 구독을 구분하기 위한 ID입니다. 새 항목이면 비어 있습니다. -->
+                        <input id="subscription-id" name="id" type="hidden">
+                        <label for="name">구독 이름</label>
+                        <input id="name" name="name" type="text" placeholder="예: 넷플릭스" maxlength="60" required>
+
+                        <div class="form-row">
+                            <div>
+                                <label for="amount">결제 금액</label>
+                                <div class="amount-input">
+                                    <input id="amount" name="amount" type="number" min="1" step="1" placeholder="13,500" required>
+                                    <span>원</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="cycle">결제 주기</label>
+                                <select id="cycle" name="cycle" required>
+                                    <option value="monthly">매월</option>
+                                    <option value="yearly">매년</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label for="next-payment-date">다음 결제일</label>
+                        <input id="next-payment-date" name="nextPaymentDate" type="date" required>
+
+                        <label for="category">카테고리</label>
+                        <input id="category" name="category" type="text" list="category-options" placeholder="예: 영상, 음악, 생산성" maxlength="30" required>
+                        <!-- 자주 쓰는 카테고리를 제안하지만, 직접 다른 값을 입력해도 됩니다. -->
+                        <datalist id="category-options">
+                            <option value="영상"></option>
+                            <option value="음악"></option>
+                            <option value="생산성"></option>
+                            <option value="운동"></option>
+                            <option value="생활"></option>
+                            <option value="기타"></option>
+                        </datalist>
+
+                        <div class="form-actions">
+                            <button class="button button-primary" id="submit-button" type="submit">구독 추가</button>
+                            <button class="button button-secondary" id="cancel-edit" type="button" hidden>취소</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="panel category-panel" aria-labelledby="category-title">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">BY CATEGORY</p>
+                            <h2 id="category-title">카테고리별 비중</h2>
+                        </div>
+                    </div>
+                    <div id="category-list" class="category-list"></div>
+                    <p class="empty-note" id="category-empty">구독을 추가하면 카테고리별 지출 비중을 보여드려요.</p>
+                </section>
+            </section>
+
+            <!-- 카드 목록은 ui.js가 구독 배열을 읽어 다시 그립니다. -->
+            <section class="panel subscriptions-panel" aria-labelledby="subscriptions-title">
+                <div class="section-heading list-heading">
+                    <div>
+                        <p class="eyebrow">YOUR SERVICES</p>
+                        <h2 id="subscriptions-title">내 구독</h2>
+                    </div>
+                    <span class="item-count" id="subscription-count">0개</span>
+                </div>
+                <div id="subscription-list" class="subscription-list"></div>
+                <div class="empty-state" id="subscription-empty">
+                    <span class="empty-icon" aria-hidden="true">＋</span>
+                    <p class="empty-title">아직 등록된 구독이 없어요</p>
+                    <p class="empty-description">왼쪽 폼에서 구독을 추가해 보세요.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- 저장 성공/오류 등 사용자에게 알려줄 메시지를 표시합니다. -->
+        <p id="app-message" class="app-message" role="status" aria-live="polite" hidden></p>
+    </div>
+
+    <!-- logic.js의 계산 함수를 먼저 정의한 뒤, 화면 그리기와 사용자 동작 코드를 실행합니다. -->
+    <script src="./js/logic.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/main.js"></script>
+</body>
+</html>
